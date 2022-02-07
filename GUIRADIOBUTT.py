@@ -23,23 +23,47 @@ import time
 from functools import partial
 import threading
 from kivy.properties import StringProperty
+from plyer import filechooser
+from tkinter import Tk, filedialog
+
+
+
+
     
 
-baseurl="C:\\Users\\dom\\Desktop\\Sciaganie"
+
 now=datetime.now()
 today = str(now.strftime("%d_%m_%Y %H_%M_%S")+".txt")
         
 #Define different screens
 class FirstWindow(Screen):
+    title_text = StringProperty('You choose to download: Nothing') 
+    baseurl="C:\\Downloads"
+    path=f'Your current downloading path: {baseurl}'
+    def file_chooser(self):
+        root = Tk() 
+        root.withdraw() 
+
+        root.attributes('-topmost', True) 
+        open_file = filedialog.askdirectory()
+        self.baseurl=open_file 
+        self.ids.path.text=f'Your current downloading path: {open_file}'
+    
     def checkbox_click(self,instance,value,mp3):
         if value == True:
             self.ids.output_label.text="You selected downloading MP3 file"
         else:
            self.ids.output_label.text="You selected downloading video file"
     
+    def showtitle(self):
+        url=self.ids.url.text
+        my_video=YouTube(url)       
+        self.title_text=f'You choose to download: {my_video.title}'
+        time.sleep(2)
+            
     def DownloadSingle(self):
         url=self.ids.url.text
-        urldownload=baseurl
+        urldownload=self.baseurl
         #my_video.streams.get_highest_resolution()    
 
         my_video=YouTube(url)
@@ -50,18 +74,13 @@ class FirstWindow(Screen):
                 pass
         else:
             print(my_video.title)
-            if(self.ids.output_label.text=="You selected downloading MP3 file"):
-                self.ids.output_label.text=f'Currently downloading: {my_video.title}'
+            if(self.ids.output_label.text=="You selected downloading MP3 file"):           
                 vid = my_video.streams.filter(only_audio=True).first()
                 out_file = vid.download(urldownload)
                 base, ext = os.path.splitext(out_file)
-                print(base)
-                print(ext)
                 new_file = base + '.mp3'
-                print(new_file)
                 os.rename(out_file, new_file)
             else:
-                self.ids.output_label.text=f'Currently downloading: {my_video.title}'
                 my_video.streams.get_highest_resolution().download(urldownload)
                 
                 
@@ -69,8 +88,18 @@ class FirstWindow(Screen):
 
 class SecondWindow(Screen):  
     
-    title_text = StringProperty('') 
-    
+    title_text = StringProperty('Files in your playlist: None')
+    baseurl="C:\\Downloads"
+    path=f'Your current downloading path: {baseurl}'
+    def file_chooser(self):
+        root = Tk() 
+        root.withdraw() 
+
+        root.attributes('-topmost', True) 
+        open_file = filedialog.askdirectory()
+        self.baseurl=open_file
+        self.ids.path.text=f'Your current downloading path: {open_file}'
+        
     def checkbox_click(self,instance,value,mp3):
         if value == True:
             self.ids.output_label.text="You selected downloading MP3 file"
@@ -79,7 +108,7 @@ class SecondWindow(Screen):
     
     def DownloadSingle(self,video): 
         print("weszlo tutaj")
-        urldownload=baseurl  
+        urldownload=self.baseurl  
         my_video=video
         if(my_video.age_restricted==True):
                 with open(today,"a") as f:
@@ -102,13 +131,13 @@ class SecondWindow(Screen):
     def showtitle(self):
         titles = self.OrganisePlaylist()[1]
         for i in titles:          
-            self.title_text=f'You are currently downloading: {i}'
-            time.sleep(1)
+            self.title_text=f'Files in your playlist: {i}'
+            time.sleep(2)
         
              
     def OrganisePlaylist(self):
         url=self.ids.url.text
-        urldownload=baseurl                        
+        urldownload=self.baseurl                        
         my_playlist=Playlist(url)
         listurls=[]
         titles=[]
@@ -122,7 +151,6 @@ class SecondWindow(Screen):
         titles=self.OrganisePlaylist()[1]
         for i in listurls:
             self.DownloadSingle(i)                    
-        print("Finished")
         
                                   
 
@@ -131,7 +159,7 @@ class WindowManager(ScreenManager):
 
 #Define size and builder
 kv = Builder.load_file('GUI2.kv')
-Window.size = (800, 230)
+Window.size = (600, 270)
     
            
 class Downloader(App):
