@@ -25,11 +25,11 @@ import threading
 from kivy.properties import StringProperty
 from plyer import filechooser
 from tkinter import Tk, filedialog
+import urllib.request
+import re
 
 
-
-
-    
+   
 
 
 now=datetime.now()
@@ -40,6 +40,23 @@ class FirstWindow(Screen):
     title_text = StringProperty('You choose to download: Nothing') 
     baseurl="C:\\Downloads"
     path=f'Your current downloading path: {baseurl}'
+    
+    def suggest(self):
+        search = self.ids.suggestioninput.text
+        searched=""
+        for i in search:
+            if i==" ":
+                searched+="+"
+            else:
+                searched+=i
+                
+        html=urllib.request.urlopen("https://www.youtube.com/results?search_query=" + searched)
+        video_ids = re.findall(r"watch\?v=(\S{11})",html.read().decode())
+        url="https://www.youtube.com/watch?v="+video_ids[0]
+        my_video = YouTube(url)
+        self.ids.suggestionlabel.text = f"Are you trying to download: {my_video.title}?"
+        self.ids.url.text = url
+        
     def file_chooser(self):
         root = Tk() 
         root.withdraw() 
@@ -159,7 +176,7 @@ class WindowManager(ScreenManager):
 
 #Define size and builder
 kv = Builder.load_file('GUI2.kv')
-Window.size = (600, 270)
+Window.size = (600, 300)
     
            
 class Downloader(App):

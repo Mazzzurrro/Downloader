@@ -33,6 +33,16 @@ WindowManager:
         TextInput:
             id: url      
             multiline: False 
+        Label:
+            id: suggestionlabel
+            text: "Write down what are you trying do download: App will suggest a file from YouTube"
+        TextInput:
+            id: suggestioninput
+            multiline:False
+        Button:
+            text: "Search YouTube for suggestion"
+            on_press:
+                root.suggest()
         BoxLayout:                                          
     		Button:
     			text: "Choose download destination"
