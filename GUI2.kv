@@ -16,10 +16,9 @@
     size_hint_y: None
     height: 30   
 
-
 WindowManager:
     FirstWindow:
-    SecondWindow:    
+    SecondWindow:   
 
 <MyLayout>
 <FirstWindow>:
@@ -43,6 +42,18 @@ WindowManager:
             text: "Search YouTube for suggestion"
             on_press:
                 root.suggest()
+    
+        RecycleView:
+            id: rv
+            viewclass: 'Button'
+            RecycleBoxLayout:
+                default_size: None, dp(26)
+                default_size_hint: 1, None
+                size_hint_y: None
+                height: self.minimum_height
+                orientation: 'vertical'
+                                   
+            
         BoxLayout:                                          
     		Button:
     			text: "Choose download destination"
@@ -146,8 +157,7 @@ WindowManager:
             on_release: 
                 app.root.current= "first"
                 root.manager.transition.direction = "left"    
-
-    
+      
                         
     
 

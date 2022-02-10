@@ -27,20 +27,23 @@ from plyer import filechooser
 from tkinter import Tk, filedialog
 import urllib.request
 import re
-
+from kivy.uix.recycleview import RecycleView
+from kivy.uix.recycleboxlayout import RecycleBoxLayout
 
    
 
 
 now=datetime.now()
 today = str(now.strftime("%d_%m_%Y %H_%M_%S")+".txt")
-        
+      
 #Define different screens
 class FirstWindow(Screen):
     title_text = StringProperty('You choose to download: Nothing') 
     baseurl="C:\\Downloads"
     path=f'Your current downloading path: {baseurl}'
-    
+    titles=[]
+    urls=[]
+    titledict={}
     def suggest(self):
         search = self.ids.suggestioninput.text
         searched=""
@@ -52,10 +55,24 @@ class FirstWindow(Screen):
                 
         html=urllib.request.urlopen("https://www.youtube.com/results?search_query=" + searched)
         video_ids = re.findall(r"watch\?v=(\S{11})",html.read().decode())
-        url="https://www.youtube.com/watch?v="+video_ids[0]
-        my_video = YouTube(url)
-        self.ids.suggestionlabel.text = f"Are you trying to download: {my_video.title}?"
-        self.ids.url.text = url
+        urls=[]
+        videos=[]
+        titles=[]
+        for i in range(len(video_ids)):
+            urls.append("https://www.youtube.com/watch?v="+video_ids[i])
+            video = YouTube(urls[i])
+            titles.append(video.title)
+        self.urls=urls
+        self.titles=titles
+        keys=titles
+        values=urls
+        zip_iterator=zip(keys,values)
+        self.titledict=dict(zip_iterator)        
+        self.ids.rv.data= [{'text': str(title), 'on_press': partial(self.geturl,title)} for title in titles]
+    def geturl(self,title):
+        self.ids.url.text=self.titledict[title]
+        
+    
         
     def file_chooser(self):
         root = Tk() 
@@ -168,6 +185,10 @@ class SecondWindow(Screen):
         titles=self.OrganisePlaylist()[1]
         for i in listurls:
             self.DownloadSingle(i)                    
+
+class SuggestWindow(Screen):
+    def outprint(self):
+        print(FirstWindow.titles)
         
                                   
 
