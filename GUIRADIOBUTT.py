@@ -29,6 +29,7 @@ import urllib.request
 import re
 from kivy.uix.recycleview import RecycleView
 from kivy.uix.recycleboxlayout import RecycleBoxLayout
+from kivy.uix.popup import Popup
 
    
 
@@ -46,31 +47,35 @@ class FirstWindow(Screen):
     titledict={}
     
     def suggest(self):
-        search = self.ids.suggestioninput.text
-        searched=""
-        for i in search:
-            if i==" ":
-                searched+="+"
-            else:
-                searched+=i
-                
-        html=urllib.request.urlopen("https://www.youtube.com/results?search_query=" + searched)
-        video_ids = re.findall(r"watch\?v=(\S{11})",html.read().decode())
-        urls=[]
-        videos=[]
-        titles=[]
-        for i in range(len(video_ids)):
-            urls.append("https://www.youtube.com/watch?v="+video_ids[i])
-            video = YouTube(urls[i])
-            titles.append(video.title)
-        self.urls=urls
-        self.titles=titles
-        keys=titles
-        values=urls
-        zip_iterator=zip(keys,values)
-        self.titledict=dict(zip_iterator)
-        self.ids.rv.data= [{'text': str(title[0:60]), 'text_size': self.size, 'halign': 'center','valign': 'middle', 
-                            'on_press': partial(self.geturl,title)} for title in titles]
+        if self.ids.suggestioninput.text=="":
+            popup=Popup(title="Error",content=Label(text="Write down what are you searching.\nDouble tap to close window."),size_hint=(None, None), size=(400, 100))                   
+            popup.open()
+        else:
+            search = self.ids.suggestioninput.text
+            searched=""
+            for i in search:
+                if i==" ":
+                    searched+="+"
+                else:
+                    searched+=i
+                    
+            html=urllib.request.urlopen("https://www.youtube.com/results?search_query=" + searched)
+            video_ids = re.findall(r"watch\?v=(\S{11})",html.read().decode())
+            urls=[]
+            videos=[]
+            titles=[]
+            for i in range(len(video_ids)):
+                urls.append("https://www.youtube.com/watch?v="+video_ids[i])
+                video = YouTube(urls[i])
+                titles.append(video.title)
+            self.urls=urls
+            self.titles=titles
+            keys=titles
+            values=urls
+            zip_iterator=zip(keys,values)
+            self.titledict=dict(zip_iterator)
+            self.ids.rv.data= [{'text': str(title[0:50]), 'text_size': self.size, 'halign': 'center','valign': 'middle', 
+                                'on_press': partial(self.geturl,title)} for title in titles]
         
     
     def geturl(self,title):
@@ -81,7 +86,6 @@ class FirstWindow(Screen):
     def file_chooser(self):
         root = Tk() 
         root.withdraw() 
-
         root.attributes('-topmost', True) 
         open_file = filedialog.askdirectory()
         self.baseurl=open_file 
@@ -110,26 +114,33 @@ class FirstWindow(Screen):
 
         
     def DownloadSingle(self):
-        url=self.ids.url.text
-        urldownload=self.baseurl
-        #my_video.streams.get_highest_resolution()    
-
-        my_video=YouTube(url)
-        if(my_video.age_restricted==True):
-                with open(today,"a") as f:
-                    f.write(my_video.title)
-                    f.close()
-                pass
+        if self.ids.url.text=="":
+            popup=Popup(title="Error",content=Label(text="Write down link to a video.\nDouble tap to close window."),size_hint=(None, None), size=(400, 100))                   
+            popup.open()
+        elif self.ids.path.text=="":
+            popup=Popup(title="Error",content=Label(text="Wrong downloading destination.\nDouble tap to close window."),size_hint=(None, None), size=(400, 100))                   
+            popup.open()
         else:
-            print(my_video.title)
-            if(self.ids.output_label.text=="Selected: MP3 file"):           
-                vid = my_video.streams.filter(only_audio=True).first()
-                out_file = vid.download(urldownload)
-                base, ext = os.path.splitext(out_file)
-                new_file = base + '.mp3'
-                os.rename(out_file, new_file)
+            url=self.ids.url.text
+            urldownload=self.baseurl
+            #my_video.streams.get_highest_resolution()    
+    
+            my_video=YouTube(url)
+            if(my_video.age_restricted==True):
+                    with open(today,"a") as f:
+                        f.write(my_video.title)
+                        f.close()
+                    pass
             else:
-                my_video.streams.get_highest_resolution().download(urldownload)
+                print(my_video.title)
+                if(self.ids.output_label.text=="Selected: MP3 file"):           
+                    vid = my_video.streams.filter(only_audio=True).first()
+                    out_file = vid.download(urldownload)
+                    base, ext = os.path.splitext(out_file)
+                    new_file = base + '.mp3'
+                    os.rename(out_file, new_file)
+                else:
+                    my_video.streams.get_highest_resolution().download(urldownload)
                 
                 
                 
@@ -203,10 +214,17 @@ class SecondWindow(Screen):
         return listurls, titles
     
     def DownloadPlaylist(self):
-        listurls=self.OrganisePlaylist()[0]
-        titles=self.OrganisePlaylist()[1]
-        for i in listurls:
-            self.DownloadSingle(i)                    
+        if self.ids.url.text=="":
+            popup=Popup(title="Error",content=Label(text="Write down link to a playlist.\nDouble tap to close window."),size_hint=(None, None), size=(400, 100))                   
+            popup.open()
+        elif self.ids.path.text=="":
+            popup=Popup(title="Error",content=Label(text="Wrong downloading destination.\nDouble tap to close window."),size_hint=(None, None), size=(400, 100))                   
+            popup.open()
+        if self.OrganisePlaylist()[0] is None == False:
+            listurls=self.OrganisePlaylist()[0]
+            titles=self.OrganisePlaylist()[1]
+            for i in listurls:
+                self.DownloadSingle(i)                    
 
         
                                   
