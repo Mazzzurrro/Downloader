@@ -1,4 +1,5 @@
 import kivy
+import os
 kivy.require('1.11.1')
 kivy.config.Config.set('graphics','resizable', False)
 from kivy.app import App
@@ -26,6 +27,7 @@ from kivy.properties import StringProperty
 from plyer import filechooser
 from tkinter import Tk, filedialog
 import urllib.request
+import urllib.error
 import re
 from kivy.uix.recycleview import RecycleView
 from kivy.uix.recycleboxlayout import RecycleBoxLayout
@@ -157,6 +159,7 @@ class SecondWindow(Screen):
         root.attributes('-topmost', True) 
         open_file = filedialog.askdirectory()
         self.baseurl=open_file
+        self.path=f'{open_file}'
         self.ids.path.text=f'{open_file}'
         
     def checkbox_click(self,instance,value,mp3):
@@ -220,11 +223,17 @@ class SecondWindow(Screen):
         elif self.ids.path.text=="":
             popup=Popup(title="Error",content=Label(text="Wrong downloading destination.\nDouble tap to close window."),size_hint=(None, None), size=(400, 100))                   
             popup.open()
-        if self.OrganisePlaylist()[0] is None == False:
+        else:
             listurls=self.OrganisePlaylist()[0]
             titles=self.OrganisePlaylist()[1]
-            for i in listurls:
-                self.DownloadSingle(i)                    
+            for i in range(len(listurls)):
+                try:
+                    self.DownloadSingle(listurls[i])
+                except urllib.error.URLError:
+                    pass
+                    file = titles[i]+".mp4"
+                    path=os.path.join(self.path,file)
+                    os.remove(path)
 
         
                                   
